@@ -49,6 +49,7 @@ public class Options {
 	}
 	
 	public ArrayList<Path> getInputFiles() {
+		System.err.println("### file searching ...");
 		ArrayList<Path> inputFiles = new ArrayList<>();
 		if (Files.isDirectory(input)) {
 			inputFiles = this.recursiveSearchInDirectory(inputFiles, input);

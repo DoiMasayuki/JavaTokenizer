@@ -45,6 +45,7 @@ public class Tokenizer {
 			sb.append('\n');
 		}
 		this.output(sb.toString());
+		System.err.println("### finish tokenizing");
 	}
 	
 	private String replaceEscapeChar(String str) {

@@ -16,21 +16,30 @@ public class Tokenizer {
 	private ArrayList<Path> inputFiles = new ArrayList<Path>();
 	private boolean isOutputStdin = true;
 	private Path output;
+
+	private boolean isDebugMode = false;
 	
 	public Tokenizer(Options options) {
 		this.inputFiles = options.getInputFiles();
 		this.isOutputStdin = options.isOutputStdin;
 		this.output = options.output;
+		this.isDebugMode = options.isDebugMode;
 	}
 	
 	public void tokenize() throws IOException, InvalidInputException {
+		System.err.println("### "+ inputFiles.size() + " files tokinizing ...");
 		StringBuilder sb = new StringBuilder();
 		for (Path path : inputFiles) {
 			String source = new String(Files.readAllBytes(path));
 			IScanner scanner = ToolFactory.createScanner(true, false, true, "1.9");
 			scanner.setSource(source.toCharArray());
-			while (scanner.getNextToken() != ITerminalSymbols.TokenNameEOF) {
-				sb.append(new String(scanner.getCurrentTokenSource()).replaceAll(" ", "_"));
+			int tokens;
+			while ((tokens = scanner.getNextToken()) != ITerminalSymbols.TokenNameEOF) {
+				if(isDebugMode) {
+					System.out.println(tokens+" | "+ new String(scanner.getCurrentTokenSource()));
+				}
+				String token = this.replaceEscapeChar(new String(scanner.getCurrentTokenSource()));
+				sb.append(token);
 				sb.append(" ");
 			}
 			sb.append('\n');
@@ -38,6 +47,11 @@ public class Tokenizer {
 		this.output(sb.toString());
 	}
 	
+	private String replaceEscapeChar(String str) {
+
+		return str.replaceAll(" ", "_").replaceAll("\t", "_").replaceAll("\r", "").replaceAll("\n", "");
+	}
+
 	private void output(String tokenized) {
 		if (this.isOutputStdin) {
 			this.outputStdin(tokenized);

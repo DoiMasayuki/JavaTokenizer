@@ -22,6 +22,9 @@ public class Options {
 	@Option(name = "-o", aliases = "--output", usage = "output file (default: stdin out)")
 	public Path output;
 	
+	@Option(name = "-d", aliases = "--debug", usage = "debug mode ")
+	public boolean isDebugMode;
+	
 	public boolean isOutputStdin;
 	
 	public Options(String[] args) throws CmdLineException {
@@ -42,7 +45,7 @@ public class Options {
 		System.out.println();
 		System.out.println("Options:");
 		parser.printUsage(System.out);
-		System.exit(1);
+		System.exit(0);
 	}
 	
 	public ArrayList<Path> getInputFiles() {

@@ -14,7 +14,7 @@ public class TokenizerTest {
 		tokenizer.setInput(Paths.get(".\\sample\\example1.java"));
 		tokenizer.setNormalize(true);
 		try {
-			tokenizer.tokenize();
+			tokenizer.tokenizeSubDirFile();
 		} catch (IOException | InvalidInputException e) {
 			e.printStackTrace();
 		}

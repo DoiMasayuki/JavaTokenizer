@@ -62,6 +62,7 @@ public class Options {
 	private ArrayList<Path> recursiveSearchInDirectory(ArrayList<Path> inputFiles, Path input) {
 		if (!Files.exists(input)) return inputFiles;
 		if (Files.isDirectory(input)) {
+			System.err.println(input);
 			for (File child : input.toFile().listFiles()) {
 				recursiveSearchInDirectory(inputFiles, child.toPath());
 			}

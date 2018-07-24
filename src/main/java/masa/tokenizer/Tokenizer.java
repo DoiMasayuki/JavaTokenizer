@@ -4,7 +4,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 import org.eclipse.jdt.core.ToolFactory;
 import org.eclipse.jdt.core.compiler.IScanner;
@@ -13,37 +12,32 @@ import org.eclipse.jdt.core.compiler.InvalidInputException;
 
 public class Tokenizer {
 	
-	private ArrayList<Path> inputFiles = new ArrayList<Path>();
-	private boolean isOutputStdin = true;
-	private Path output;
-	
-	private boolean isDebugMode = false;
-	private boolean isNormalizeMode = false;
+	private Options options = new Options();
 	
 	public Tokenizer(Options options) {
-		this.inputFiles = options.getInputFiles();
-		this.isOutputStdin = options.isOutputStdin;
-		this.output = options.output;
-		this.isDebugMode = options.isDebugMode;
-		this.isNormalizeMode = options.isNormalize;
+		this.options = options;
 	}
 	
-	public void tokenize() throws IOException, InvalidInputException {
-		System.err.println("### " + inputFiles.size() + " files tokinizing ...");
+	public Tokenizer() {
+	}
+	
+	public String tokenize() throws IOException, InvalidInputException {
+		options.setInputFiles();
+		System.err.println("### " + options.inputFiles.size() + " files tokinizing ...");
 		StringBuilder sb = new StringBuilder();
-		for (Path path : inputFiles) {
+		for (Path path : options.inputFiles) {
 			String source = new String(Files.readAllBytes(path));
 			IScanner scanner = ToolFactory.createScanner(false, false, true, "1.9");
 			scanner.setSource(source.toCharArray());
 			int tokens;
 			try {
 				while ((tokens = scanner.getNextToken()) != ITerminalSymbols.TokenNameEOF) {
-					if (isDebugMode) {
+					if (options.isDebugMode) {
 						System.out.println(tokens + " | " + new String(scanner.getCurrentTokenSource()));
 					}
 					String token = this.replaceEscapeChar(new String(scanner.getCurrentTokenSource()));
 					
-					if (isNormalizeMode) {
+					if (options.isNormalize) {
 						token = this.NomalizeToken(token, tokens);
 					}
 					sb.append(token);
@@ -57,6 +51,7 @@ public class Tokenizer {
 		}
 		this.output(sb.toString());
 		System.err.println("### finished tokenize");
+		return sb.toString();
 	}
 	
 	private String NomalizeToken(String token, int tokens) {
@@ -87,7 +82,7 @@ public class Tokenizer {
 	}
 	
 	private void output(String tokenized) {
-		if (this.isOutputStdin) {
+		if (this.options.isOutputStdin) {
 			this.outputStdin(tokenized);
 		} else {
 			this.outputFile(tokenized);
@@ -96,7 +91,7 @@ public class Tokenizer {
 	
 	private void outputFile(String tokenized) {
 		try {
-			FileWriter fw = new FileWriter(output.toFile());
+			FileWriter fw = new FileWriter(options.output.toFile());
 			fw.write(tokenized);
 			fw.close();
 			
@@ -108,6 +103,22 @@ public class Tokenizer {
 	
 	private void outputStdin(String tokenized) {
 		System.out.println(tokenized);
+	}
+	
+	public void setShowUsage(boolean isShowUsage) {
+		this.options.isShowUsage = isShowUsage;
+	}
+	
+	public void setInput(Path input) {
+		this.options.input = input;
+	}
+	
+	public void setOutput(Path output) {
+		this.options.output = output;
+	}
+	
+	public void setNormalize(boolean isNormalize) {
+		this.options.isNormalize = isNormalize;
 	}
 	
 	public static void main(String[] args) throws Exception {

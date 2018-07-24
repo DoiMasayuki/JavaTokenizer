@@ -25,7 +25,11 @@ public class Options {
 	@Option(name = "-d", aliases = "--debug", usage = "debug mode ")
 	public boolean isDebugMode;
 	
+	@Option(name = "--normalize", usage = "nomalize identifier")
+	public boolean isNormalize;
+	
 	public boolean isOutputStdin;
+
 	
 	public Options(String[] args) throws CmdLineException {
 		this.parser = new CmdLineParser(this);

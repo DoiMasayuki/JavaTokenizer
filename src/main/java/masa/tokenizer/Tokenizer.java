@@ -18,12 +18,14 @@ public class Tokenizer {
 	private Path output;
 	
 	private boolean isDebugMode = false;
+	private boolean isNormalizeMode = false;
 	
 	public Tokenizer(Options options) {
 		this.inputFiles = options.getInputFiles();
 		this.isOutputStdin = options.isOutputStdin;
 		this.output = options.output;
 		this.isDebugMode = options.isDebugMode;
+		this.isNormalizeMode = options.isNormalize;
 	}
 	
 	public void tokenize() throws IOException, InvalidInputException {
@@ -35,18 +37,21 @@ public class Tokenizer {
 			scanner.setSource(source.toCharArray());
 			int tokens;
 			try {
-			while ((tokens = scanner.getNextToken()) != ITerminalSymbols.TokenNameEOF) {
-				if (isDebugMode) {
-					System.out.println(tokens + " | " + new String(scanner.getCurrentTokenSource()));
+				while ((tokens = scanner.getNextToken()) != ITerminalSymbols.TokenNameEOF) {
+					if (isDebugMode) {
+						System.out.println(tokens + " | " + new String(scanner.getCurrentTokenSource()));
+					}
+					String token = this.replaceEscapeChar(new String(scanner.getCurrentTokenSource()));
+					
+					if (isNormalizeMode) {
+						token = this.NomalizeToken(token, tokens);
+					}
+					sb.append(token);
+					sb.append(" ");
 				}
-				String token = this.replaceEscapeChar(new String(scanner.getCurrentTokenSource()));
-				
-				sb.append(token);
-				sb.append(" ");
-			}
-			sb.append('\n');
-			}catch( InvalidInputException e) {
-				System.err.println("[ERROR] : can\'t parse this file "+path);
+				sb.append('\n');
+			} catch (InvalidInputException e) {
+				System.err.println("[ERROR] : can\'t parse this file " + path);
 				e.printStackTrace();
 			}
 		}
@@ -54,11 +59,21 @@ public class Tokenizer {
 		System.err.println("### finished tokenize");
 	}
 	
+	private String NomalizeToken(String token, int tokens) {
+		if (tokens == ITerminalSymbols.TokenNameStringLiteral) {
+			token = "__StringLiteral";
+		}
+		if (tokens == ITerminalSymbols.TokenNameIdentifier) {
+			token = "__Identifier";
+		}
+		return token;
+	}
+	
 	private String replaceEscapeChar(String str) {
 		
 		String token = str.replaceAll(" ", "_").replaceAll("\t", "_").replaceAll("\r", "").replaceAll("\n", "");
 		
-		if (token.startsWith("'") && token.endsWith("'") && token.length()==3) {
+		if (token.startsWith("'") && token.endsWith("'") && token.length() == 3) {
 			token = token.substring(1, token.length() - 1);
 			StringBuilder sb = new StringBuilder("'");
 			for (int i = 0; i < token.length(); i++) {

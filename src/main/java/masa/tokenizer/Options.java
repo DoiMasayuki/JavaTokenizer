@@ -28,8 +28,9 @@ public class Options {
 	@Option(name = "--normalize", usage = "nomalize identifier")
 	public boolean isNormalize;
 	
-	public boolean isOutputStdin;
-
+	public boolean isOutputStdin = true;
+	
+	public ArrayList<Path> inputFiles = new ArrayList<Path>();
 	
 	public Options(String[] args) throws CmdLineException {
 		this.parser = new CmdLineParser(this);
@@ -38,8 +39,11 @@ public class Options {
 		this.checkOptions();
 	}
 	
+	public Options() {
+	}
+	
 	private void checkOptions() {
-		if(this.isShowUsage) this.printUsage();
+		if (this.isShowUsage) this.printUsage();
 		this.isOutputStdin = (output == null);
 	}
 	
@@ -52,15 +56,16 @@ public class Options {
 		System.exit(0);
 	}
 	
-	public ArrayList<Path> getInputFiles() {
+	public void setInputFiles() {
 		System.err.println("### file searching ...");
-		ArrayList<Path> inputFiles = new ArrayList<>();
+		ArrayList<Path> files = new ArrayList<>();
 		if (Files.isDirectory(input)) {
-			inputFiles = this.recursiveSearchInDirectory(inputFiles, input);
+			files = this.recursiveSearchInDirectory(files, input);
 		} else {
-			if (input.toString().endsWith(".java")) inputFiles.add(input);
+			if (input.toString().endsWith(".java")) files.add(input);
 		}
-		return inputFiles;
+		this.inputFiles = files;
+		
 	}
 	
 	private ArrayList<Path> recursiveSearchInDirectory(ArrayList<Path> inputFiles, Path input) {

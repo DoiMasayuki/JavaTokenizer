@@ -21,33 +21,43 @@ public class Tokenizer {
 	public Tokenizer() {
 	}
 	
-	public String tokenize() throws IOException, InvalidInputException {
+	public String tokenizeSource(String source) throws InvalidInputException {
+		IScanner scanner = ToolFactory.createScanner(false, false, true, "1.9");
+		StringBuilder sb = new StringBuilder();
+		scanner.setSource(source.toCharArray());
+		int tokens;
+		while ((tokens = scanner.getNextToken()) != ITerminalSymbols.TokenNameEOF) {
+			if (options.isDebugMode) {
+				System.out.println(tokens + " | " + new String(scanner.getCurrentTokenSource()));
+			}
+			String token = this.replaceEscapeChar(new String(scanner.getCurrentTokenSource()));
+			
+			if (options.isNormalize) {
+				token = this.NomalizeToken(token, tokens);
+			}
+			sb.append(token);
+			sb.append(" ");
+		}
+		sb.append('\n');
+		return sb.toString();
+	}
+	
+	public String tokenizeFile(Path path) throws IOException {
+		String source = new String(Files.readAllBytes(path));
+		try {
+			return this.tokenizeSource(source);
+		} catch (InvalidInputException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public String tokenizeSubDirFile() throws IOException, InvalidInputException {
 		options.setInputFiles();
 		System.err.println("### " + options.inputFiles.size() + " files tokinizing ...");
 		StringBuilder sb = new StringBuilder();
 		for (Path path : options.inputFiles) {
-			String source = new String(Files.readAllBytes(path));
-			IScanner scanner = ToolFactory.createScanner(false, false, true, "1.9");
-			scanner.setSource(source.toCharArray());
-			int tokens;
-			try {
-				while ((tokens = scanner.getNextToken()) != ITerminalSymbols.TokenNameEOF) {
-					if (options.isDebugMode) {
-						System.out.println(tokens + " | " + new String(scanner.getCurrentTokenSource()));
-					}
-					String token = this.replaceEscapeChar(new String(scanner.getCurrentTokenSource()));
-					
-					if (options.isNormalize) {
-						token = this.NomalizeToken(token, tokens);
-					}
-					sb.append(token);
-					sb.append(" ");
-				}
-				sb.append('\n');
-			} catch (InvalidInputException e) {
-				System.err.println("[ERROR] : can\'t parse this file " + path);
-				e.printStackTrace();
-			}
+			sb.append(this.tokenizeFile(path));
 		}
 		this.output(sb.toString());
 		System.err.println("### finished tokenize");
@@ -124,6 +134,6 @@ public class Tokenizer {
 	public static void main(String[] args) throws Exception {
 		Options options = new Options(args);
 		Tokenizer tokenizer = new Tokenizer(options);
-		tokenizer.tokenize();
+		tokenizer.tokenizeSubDirFile();
 	}
 }
